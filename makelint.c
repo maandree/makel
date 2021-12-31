@@ -141,7 +141,7 @@ load_file(int fd, const char *fname, size_t *nlinesp)
 			warnf_undefined(WC_TEXT, "%s:%zu: line is, including the <newline> character, longer than "
 			                         "2048 bytes which causes undefined behaviour as input files are "
 			                         "text files and POSIX only guarantees support for lines up to 2048 "
-			                         "including the <newline> character in text files",
+			                         "bytes long including the <newline> character in text files",
 			                fname, *nlinesp + 1);
 		}
 		p += lines[i].len + 1;
