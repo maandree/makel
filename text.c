@@ -115,7 +115,8 @@ check_utf8_encoding(struct line *line)
 			        &line->data[off + r],
 			        line->len - off - r);
 			memcpy(&line->data[off], invalid_codepoint_encoding, ELEMSOF(invalid_codepoint_encoding));
-			line->len = line->len - r + ELEMSOF(invalid_codepoint_encoding);
+			line->len -= r;
+			line->len += r = ELEMSOF(invalid_codepoint_encoding);
 		}
 	}
 }
