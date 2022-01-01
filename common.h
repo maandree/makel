@@ -60,6 +60,12 @@ extern int exit_status;
 extern struct style style;
 
 
+/* makefile.c */
+int open_default_makefile(const char **pathp);
+void cmdline_opt_f(const char *arg, const char **makefile_pathp);
+struct line *load_makefile(const char *path, size_t *nlinesp);
+
+
 /* text.c */
 struct line *load_text_file(int fd, const char *fname, int nest_level, size_t *nlinesp);
 void check_utf8_encoding(struct line *line);

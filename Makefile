@@ -5,6 +5,7 @@ include $(CONFIGFILE)
 
 OBJ =\
 	mklint.o\
+	makefile.o\
 	text.o\
 	ui.o
 
