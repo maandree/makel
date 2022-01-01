@@ -2,6 +2,15 @@
 #include "common.h"
 
 
+static void
+print_long_line_tip(enum warning_class class)
+{
+	printtipf(class, "you can put a <backslash> at the end of the line to continue "
+	                 "it on the next line, except in or immediately proceeding an "
+	                 "include line");
+}
+
+
 struct line *
 load_text_file(int fd, const char *fname, int nest_level, size_t *nlinesp)
 {
@@ -81,6 +90,8 @@ load_text_file(int fd, const char *fname, int nest_level, size_t *nlinesp)
 			                         "text files and POSIX only guarantees support for lines up to 2048 "
 			                         "bytes long including the <newline> character in text files",
 			                fname, *nlinesp + 1);
+			printinfof(WC_TEXT, "this implementation supports arbitrarily long lines");
+			print_long_line_tip(WC_TEXT);
 		}
 		p += lines[i].len + 1;
 	}
@@ -140,5 +151,17 @@ check_column_count(struct line *line)
 	if (columns > style.max_line_length) {
 		warnf_style(WC_LONG_LINE, "%s:%zu: line is longer than %zu columns",
 		            line->path, line->lineno, columns);
+		if (line->len + 1 <= 2048)
+			print_long_line_tip(WC_LONG_LINE);
 	}
+}
+
+
+int
+is_line_blank(struct line *line)
+{
+	char *s = line->data;
+	while (isspace(*s))
+		s++;
+	return !!*s;
 }

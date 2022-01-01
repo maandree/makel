@@ -5,13 +5,23 @@
 #include <libsimple-arg.h>
 #include <grapheme.h>
 
+
+#if defined(__GNUC__)
+# pragma GCC diagnostic ignored "-Wsuggest-attribute=format"
+# pragma GCC diagnostic ignored "-Wsuggest-attribute=noreturn"
+# pragma GCC diagnostic ignored "-Wsuggest-attribute=pure"
+# pragma GCC diagnostic ignored "-Wsuggest-attribute=const"
+#endif
+
+
 #define EXIT_STYLE         1
-#define EXIT_WARNING       2
-#define EXIT_UNSPECIFIED   3
-#define EXIT_NONCONFIRMING 4
-#define EXIT_UNDEFINED     5
-#define EXIT_CRITICAL      6
-#define EXIT_ERROR         7
+#define EXIT_CONFUSING     2
+#define EXIT_WARNING       3
+#define EXIT_UNSPECIFIED   4
+#define EXIT_NONCONFORMING 5
+#define EXIT_UNDEFINED     6
+#define EXIT_CRITICAL      7
+#define EXIT_ERROR         8
 
 
 #define LIST_WARNING_CLASSES(X)\
@@ -20,7 +30,15 @@
 	X(WC_CMDLINE, "cmdline", WARN)\
 	X(WC_TEXT, "text", WARN)\
 	X(WC_ENCODING, "encoding", WARN)\
-	X(WC_LONG_LINE, "long-line", WARN_STYLE)
+	X(WC_LONG_LINE, "long-line", WARN_STYLE)\
+	X(WC_NONEMPTY_BLANK, "nonempty-blank", WARN_STYLE)\
+	X(WC_LEADING_BAD_SPACE, "leading-bad-space", WARN)\
+	X(WC_ILLEGAL_INDENT, "illegal-indent", WARN)\
+	X(WC_CONTINUATION_OF_BLANK, "continuation-of-blank", WARN)\
+	X(WC_CONTINUATION_TO_BLANK, "continuation-to-blank", WARN)\
+	X(WC_EOF_LINE_CONTINUATION, "eof-line-continuation", WARN)\
+	X(WC_UNINDENTED_CONTINUATION, "unindented-continuation", WARN)\
+	X(WC_SPACELESS_CONTINUATION, "spaceless-continuation", WARN)
 
 
 enum action {
@@ -42,6 +60,14 @@ struct warning_class_data {
 	enum action action;
 };
 
+enum line_class {
+	EMPTY, /* Classified as comment lines in the specification */
+	BLANK, /* Classified as comment lines in the specification */
+	COMMENT,
+	COMMAND_LINE,
+	OTHER
+};
+
 struct line {
 	char *data;
 	size_t len;
@@ -49,10 +75,12 @@ struct line {
 	size_t lineno;
 	int eof;
 	int nest_level;
+	char continuation_joiner;
 };
 
 struct style {
 	size_t max_line_length;
+	int only_empty_blank_lines;
 };
 
 
@@ -70,6 +98,7 @@ struct line *load_makefile(const char *path, size_t *nlinesp);
 struct line *load_text_file(int fd, const char *fname, int nest_level, size_t *nlinesp);
 void check_utf8_encoding(struct line *line);
 void check_column_count(struct line *line);
+int is_line_blank(struct line *line);
 
 
 /* ui.c */
@@ -77,7 +106,10 @@ extern struct warning_class_data warning_classes[];
 void xprintwarningf(enum warning_class class, int severity, const char *fmt, ...);
 #define printinfof(CLASS, ...) xprintwarningf(CLASS, 0, __VA_ARGS__)
 #define warnf_style(CLASS, ...) xprintwarningf(CLASS, EXIT_STYLE, __VA_ARGS__)
+#define warnf_confusing(CLASS, ...) xprintwarningf(CLASS, EXIT_CONFUSING, __VA_ARGS__)
 #define warnf_warning(CLASS, ...) xprintwarningf(CLASS, EXIT_WARNING, __VA_ARGS__)
 #define warnf_unspecified(CLASS, ...) xprintwarningf(CLASS, EXIT_UNSPECIFIED, __VA_ARGS__)
+#define warnf_nonconforming(CLASS, ...) xprintwarningf(CLASS, EXIT_NONCONFORMING, __VA_ARGS__)
 #define warnf_undefined(CLASS, ...) xprintwarningf(CLASS, EXIT_UNDEFINED, __VA_ARGS__)
 void printerrorf(const char *fmt, ...);
+void printtipf(enum warning_class class, const char *fmt, ...);

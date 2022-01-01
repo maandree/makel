@@ -46,3 +46,16 @@ printerrorf(const char *fmt, ...)
 	va_end(ap);
 	exit(EXIT_CRITICAL);
 }
+
+
+void
+printtipf(enum warning_class class, const char *fmt, ...)
+{
+	va_list ap;
+	if (warning_classes[class].action != IGNORE) {
+		va_start(ap, fmt);
+		fprintf(stderr, "%s: [tip] ", argv0);
+		vfprintf(stderr, fmt, ap);
+		va_end(ap);
+	}
+}
