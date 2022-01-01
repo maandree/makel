@@ -15,7 +15,7 @@ vxprintwarningf(enum warning_class class, int severity, const char *fmt, va_list
 {
 	if (warning_classes[class].action != IGNORE) {
 		fprintf(stderr, "%s: [%s] ", argv0,
-		        warning_classes[class].action == INFORM ? "info" : "warn");
+		        warning_classes[class].action == INFORM ? "info" : "warning");
 		vfprintf(stderr, fmt, ap);
 		fprintf(stderr, " (-w%s)\n", warning_classes[class].name);
 		if (warning_classes[class].action != INFORM)
