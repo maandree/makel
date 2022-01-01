@@ -52,8 +52,8 @@ check_line_continuations(struct line *lines, size_t nlines)
 			warnf_unspecified(WC_EOF_LINE_CONTINUATION,
 			                  "%s:%zu: line continuation at end of file, causes unspecified behaviour%s",
 			                  lines[i].path, lines[i].lineno,
-			                  (!lines[i].nest_level ? "" :
-			                   ", it is especially problematic in an included line"));
+			                  !lines[i].nest_level ? "" :
+			                  ", it is especially problematic in an included line");
 			printinfof(WC_EOF_LINE_CONTINUATION, "this implementation will remove the line continuation");
 			lines[i].continuation_joiner = 0;
 		}
