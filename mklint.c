@@ -7,7 +7,7 @@ NUSAGE(EXIT_ERROR, "[-f makefile]");
 
 int exit_status = 0;
 
-static const char *default_makefiles[] = {
+static const char *const default_makefiles[] = {
 	"makefile",
 	"Makefile"
 };
@@ -41,9 +41,10 @@ open_default_makefile(const char **pathp)
 	            "alternatives are ./makefile and ./Makefile");
 
 find_existing_fallbacks:
-	for (; i < ELEMSOF(default_makefiles); i++)
+	for (i++; i < ELEMSOF(default_makefiles); i++)
 		if (!access(default_makefiles[i], F_OK))
-			warnf_warning(WC_EXTRA_MAKEFILE, "found additional standard makefile: %s", *pathp);
+			warnf_warning(WC_EXTRA_MAKEFILE, "found additional standard makefile: %s",
+			              default_makefiles[i]);
 
 	return fd;
 }
