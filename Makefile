@@ -5,6 +5,7 @@ include $(CONFIGFILE)
 
 OBJ =\
 	mklint.o\
+	text.o\
 	ui.o
 
 HDR =\

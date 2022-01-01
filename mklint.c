@@ -4,8 +4,12 @@
 NUSAGE(EXIT_ERROR, "[-f makefile]");
 
 
-
 int exit_status = 0;
+
+struct style style = {
+	.max_line_length = 120
+};
+
 
 static const char *const default_makefiles[] = {
 	"makefile",
@@ -69,86 +73,27 @@ cmdline_opt_f(const char *arg, const char **makefile_pathp)
 
 
 static struct line *
-load_file(int fd, const char *fname, size_t *nlinesp)
+load_makefile(const char *path, size_t *nlinesp)
 {
 	struct line *lines;
-	char *buf = NULL, *p;
-	size_t size = 0;
-	size_t len = 0;
-	size_t i;
-	ssize_t r;
+	int fd;
 
-	/* getline(3) may seem like the best way to read line by line,
-	 * however, it may terminate before the end of the line is
-	 * reached, which we would have to deal with, additionally,
-	 * we want to check for null bytes. Therefore we will keep
-	 * this simple and use read(3) and scan manually; and as a
-	 * bonus we can leave the file descriptor open, and let the
-	 * caller than created it close it.
-	 */
-
-	i = 0;
-	*nlinesp = 0;
-	for (;;) {
-		if (len == size)
-			buf = erealloc(buf, size += 2048);
-		r = read(fd, &buf[len], size - len);
-		if (r > 0)
-			len += (size_t)r;
-		else if (!r)
-			break;
-		else if (errno == EINTR)
-			continue;
-		else
-			eprintf("read %s:", fname);
-
-		for (; i < len; i++) {
-			if (buf[i] == '\n') {
-				*nlinesp += 1;
-				buf[i] = '\0';
-			} else if (buf[i] == '\0') {
-				/* https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_403 */
-				warnf_undefined(WC_TEXT, "%s:%zu: file contains a NUL byte, this is disallowed, because "
-				                         "input files are text files, and causes undefined behaviour",
-				                fname, *nlinesp + 1);
-				/* make(1) should probably just abort */
-				printinfof(WC_TEXT, "this implementation will replace it with a <space>");
-				buf[i] = ' ';
-			}
-		}
+	if (!path) {
+		fd = open_default_makefile(&path);
+	} else if (!strcmp(path, "-")) {
+		/* “A pathname of '-' shall denote the standard input” */
+		fd = dup(STDIN_FILENO);
+		if (fd < 0)
+			eprintf("dup <stdin>:");
+		path = "<stdin>";
+	} else {
+		fd = open(path, O_RDONLY);
+		if (fd < 0)
+			eprintf("open %s O_RDONLY:", path);
 	}
 
-	if (len && buf[len - 1] != '\0') { /* LF has been converted to NUL above */
-		/* https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_403 */
-		warnf_undefined(WC_TEXT, "%s:%zu: is non-empty but does not end with a <newline>, which is "
-		                         "required because input files are text files, and omission of it "
-		                         "causes undefined behaviour",
-		                fname, *nlinesp + 1);
-		/* make(1) should probably just abort */
-		printinfof(WC_TEXT, "this implementation will add the missing <newline>");
-		buf = erealloc(buf, len + 1);
-		buf[len++] = '\0';
-		*nlinesp += 1;
-	}
-
-	lines = *nlinesp ? ecalloc(*nlinesp, sizeof(*lines)) : NULL;
-	for (p = buf, i = 0; i < *nlinesp; i++) {
-		lines[i].lineno = i + 1;
-		lines[i].path = fname;
-		lines[i].len = strlen(p);
-		lines[i].data = ememdup(p, lines[i].len + 1);
-		if (lines[i].len + 1 > 2048) {
-			/* https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap03.html#tag_03_403 */
-			warnf_undefined(WC_TEXT, "%s:%zu: line is, including the <newline> character, longer than "
-			                         "2048 bytes which causes undefined behaviour as input files are "
-			                         "text files and POSIX only guarantees support for lines up to 2048 "
-			                         "bytes long including the <newline> character in text files",
-			                fname, *nlinesp + 1);
-		}
-		p += lines[i].len + 1;
-	}
-
-	free(buf);
+	lines = load_text_file(fd, path, 0, nlinesp);
+	close(fd);
 	return lines;
 }
 
@@ -157,9 +102,9 @@ int
 main(int argc, char *argv[])
 {
 	const char *path = NULL;
-	int fd;
 	struct line *lines;
 	size_t nlines;
+	size_t i;
 
 	libsimple_default_failure_exit = EXIT_ERROR;
 
@@ -176,22 +121,14 @@ main(int argc, char *argv[])
 	if (argc)
 		usage();
 
-	if (!path) {
-		fd = open_default_makefile(&path);
-	} else if (!strcmp(path, "-")) {
-		/* “A pathname of '-' shall denote the standard input” */
-		fd = dup(STDIN_FILENO);
-		if (fd < 0)
-			eprintf("dup <stdin>:");
-		path = "<stdin>";
-	} else {
-		fd = open(path, O_RDONLY);
-		if (fd < 0)
-			eprintf("open %s O_RDONLY:", path);
-	}
+	setlocale(LC_ALL, ""); /* Required by wcwidth(3) */
 
-	lines = load_file(fd, path, &nlines);
-	close(fd);
+	lines = load_makefile(path, &nlines);
+
+	for (i = 0; i < nlines; i++) {
+		check_utf8_encoding(&lines[i]);
+		check_column_count(&lines[i]);
+	}
 
 	free(lines);
 	return exit_status;
