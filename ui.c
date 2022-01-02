@@ -14,7 +14,7 @@ static void
 vxprintwarningf(enum warning_class class, int severity, const char *fmt, va_list ap)
 {
 	if (warning_classes[class].action != IGNORE) {
-		fprintf(stderr, "%s: [%s] ", argv0,
+		fprintf(stderr, "[%s] ",
 		        warning_classes[class].action == INFORM ? "info" :
 		        warning_classes[class].action == WARN_STYLE ? "style" : "warning");
 		vfprintf(stderr, fmt, ap);
@@ -54,7 +54,7 @@ printtipf(enum warning_class class, const char *fmt, ...)
 	va_list ap;
 	if (warning_classes[class].action != IGNORE) {
 		va_start(ap, fmt);
-		fprintf(stderr, "%s: [tip] ", argv0);
+		fprintf(stderr, "[tip] ");
 		vfprintf(stderr, fmt, ap);
 		va_end(ap);
 	}
