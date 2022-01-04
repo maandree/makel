@@ -12,4 +12,4 @@
 *.gcov
 *.gcno
 *.gcda
-/mklint
+/makel
