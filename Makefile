@@ -34,7 +34,7 @@ uninstall:
 	-rm -f -- "$(DESTDIR)$(MANPREFIX)/man1/makel.1"
 
 clean:
-	-rm -f -- *.o *.a *.lo *.su *.so *.so.* *.gch *.gcov *.gcno *.gcda
+	-rm -f -- *.o *.a *.su *.gcov *.gcno *.gcda
 	-rm -f -- makel
 
 .SUFFIXES:

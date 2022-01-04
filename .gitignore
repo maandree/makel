@@ -2,13 +2,7 @@
 *~
 *.o
 *.a
-*.lo
 *.su
-*.so
-*.so.*
-*.dll
-*.dylib
-*.gch
 *.gcov
 *.gcno
 *.gcda
