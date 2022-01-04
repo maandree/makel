@@ -7,9 +7,11 @@ OBJ =\
 	makel.o\
 	makefile.o\
 	text.o\
-	ui.o
+	ui.o\
+	util.o
 
 HDR =\
+	arg.h\
 	common.h
 
 all: makel

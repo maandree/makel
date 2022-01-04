@@ -1,9 +1,18 @@
 /* See LICENSE file for copyright and license details. */
+#include <ctype.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <locale.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <wchar.h>
 
-#include <libsimple.h>
-#include <libsimple-arg.h>
 #include <grapheme.h>
+
+#include "arg.h"
 
 
 #if defined(__GNUC__)
@@ -22,6 +31,10 @@
 #define EXIT_UNDEFINED     6
 #define EXIT_CRITICAL      7
 #define EXIT_ERROR         8
+
+
+#define ELEMSOF(ARRAY) (sizeof(ARRAY) / sizeof(*(ARRAY)))
+#define MAX(A, B) ((A) > (B) ? (A) : (B))
 
 
 #define LIST_WARNING_CLASSES(X)\
@@ -121,3 +134,11 @@ void xprintwarningf(enum warning_class class, int severity, const char *fmt, ...
 #define warnf_undefined(CLASS, ...) xprintwarningf(CLASS, EXIT_UNDEFINED, __VA_ARGS__)
 void printerrorf(const char *fmt, ...);
 void printtipf(enum warning_class class, const char *fmt, ...);
+
+
+/* util.c */
+void *erealloc(void *, size_t);
+void *ecalloc(size_t, size_t);
+void *emalloc(size_t);
+void *ememdup(const void *, size_t);
+void eprintf(const char *, ...);

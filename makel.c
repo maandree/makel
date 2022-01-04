@@ -1,7 +1,13 @@
 /* See LICENSE file for copyright and license details. */
 #include "common.h"
 
-NUSAGE(EXIT_ERROR, "[-f makefile]");
+const char *argv0 = "makel";
+
+static void
+usage(void) {
+	fprintf(stderr, "%s [-f makefile]\n", argv0);
+	exit(EXIT_ERROR);
+}
 
 
 int exit_status = 0;
@@ -148,8 +154,6 @@ main(int argc, char *argv[])
 	struct line *lines;
 	size_t nlines;
 	size_t i;
-
-	libsimple_default_failure_exit = EXIT_ERROR;
 
 	/* make(1) shall support mixing of options and operands (up to --) */
 	ARGBEGIN {
