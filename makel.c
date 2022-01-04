@@ -214,7 +214,7 @@ main(int argc, char *argv[])
 		}
 
 		while (lines[i].continuation_joiner) {
-			if (memchr(lines[i].data, '#', lines[i].len)) {
+			if (memchr(lines[i].data, '#', lines[i].len)) { /* TODO could also be a non-standard internal macro */
 				warnf_confusing(WC_COMMENT_CONTINUATION,
 				                "%s:%zu: using continuation of line to continue "
 				                "a comment on the next line can cause confusion",
@@ -222,6 +222,15 @@ main(int argc, char *argv[])
 			}
 			i += 1;
 		}
+		/* TODO # in comment lines are very problematic. In make(1)
+		 *      a comment can have a line continuation, but in sh(1)
+		 *      comments cannot have line continuation. Furthermore,
+		 *      any #, even if there is a be backslashed or in quotes,
+		 *      becomes a comment; because of this, some implementations
+		 *      of make do not recognise comments in command lines and
+		 *      instead rely on sh(1) ignoring comments (this however
+		 *      breaks POSIX compliance). */
+		/* TODO check if a # appears inside quotes or after a backslash */
 	}
 
 	free(lines);
