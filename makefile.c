@@ -36,10 +36,24 @@ open_default_makefile(const char **pathp)
 	            "alternatives are ./makefile and ./Makefile");
 
 find_existing_fallbacks:
+	/* This serves two purposes: to inform the user that
+	 * we are only checking one of the files, and which
+	 * would (which is printed earlier), and to information
+	 * the user that it can be confusing. It is not common
+	 * practice run make(1) to generate ./makefile from
+	 * ./Makefile and (either immediately or by running
+	 * make(1) again) built the project from ./Makefile,
+	 * although that certainly can be useful if there are
+	 * parts of the makefile you want to generate, such
+	 * as .h file dependencies for .c files in very large
+	 * projects that have many .h files and many .c files
+	 * that each only depend on a few .h files.
+	 */
 	for (i++; i < ELEMSOF(default_makefiles); i++)
 		if (!access(default_makefiles[i], F_OK))
-			warnf_warning(WC_EXTRA_MAKEFILE, "found additional standard makefile: %s",
-			              default_makefiles[i]);
+			warnf_confusing(WC_EXTRA_MAKEFILE,
+			                "found additional standard makefile, this be confusing: %s",
+			                default_makefiles[i]);
 
 	return fd;
 }

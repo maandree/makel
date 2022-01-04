@@ -38,7 +38,8 @@
 	X(WC_CONTINUATION_TO_BLANK, "continuation-to-blank", WARN)\
 	X(WC_EOF_LINE_CONTINUATION, "eof-line-continuation", WARN)\
 	X(WC_UNINDENTED_CONTINUATION, "unindented-continuation", WARN)\
-	X(WC_SPACELESS_CONTINUATION, "spaceless-continuation", WARN)
+	X(WC_SPACELESS_CONTINUATION, "spaceless-continuation", WARN)\
+	X(WC_COMMENT_CONTINUATION, "comment-continuation", WARN)
 
 
 enum action {
@@ -75,12 +76,19 @@ struct line {
 	size_t lineno;
 	int eof;
 	int nest_level;
-	char continuation_joiner;
+	char continuation_joiner; /* If '\\', it shall be '\\\n' */
+};
+
+enum macro_bracket_style {
+	INCONSISTENT,
+	ROUND,
+	CURLY
 };
 
 struct style {
 	size_t max_line_length;
 	int only_empty_blank_lines;
+	enum macro_bracket_style macro_bracket_style;
 };
 
 

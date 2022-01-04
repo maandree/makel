@@ -8,7 +8,8 @@ int exit_status = 0;
 
 struct style style = {
 	.max_line_length = 120,
-	.only_empty_blank_lines = 1
+	.only_empty_blank_lines = 1,
+	.macro_bracket_style = ROUND
 };
 
 
@@ -18,7 +19,7 @@ set_line_continuation_joiner(struct line *line)
 	if (line->len && line->data[line->len - 1] == '\\') {
 		line->data[--line->len] = '\0';
 		/* Doesn't matter here if the first non-white space is # */
-		line->continuation_joiner = line->data[0] == '\t' ? '\t' : ' ';
+		line->continuation_joiner = line->data[0] == '\t' ? '\\' : ' ';
 	} else {
 		line->continuation_joiner = '\0';
 	}
@@ -82,7 +83,6 @@ check_line_continuations(struct line *lines, size_t nlines)
 }
 
 
-
 static enum line_class
 classify_line(struct line *line)
 {
@@ -92,6 +92,7 @@ classify_line(struct line *line)
 	if (!line->len)
 		return EMPTY;
 
+start_over:
 	s = line->data;
 
 	while (isspace(*s)) {
@@ -99,7 +100,7 @@ classify_line(struct line *line)
 			warned_bad_space = 1;
 			warnf_undefined(WC_LEADING_BAD_SPACE,
 			                "%s:%zu: line contains leading white space other than"
-			                "<space> and <tab>, which causes undefined behaviour",
+		        	        "<space> and <tab>, which causes undefined behaviour",
 			                line->path, line->lineno);
 			/* TODO what do we do here? */
 		}
@@ -117,12 +118,24 @@ classify_line(struct line *line)
 		return COMMENT;
 
 	} else if (!*s) {
+		if (line->continuation_joiner) {
+			line++;
+			goto start_over;
+		}
 		return BLANK;
 
 	} else if (line->data[0] == '\t') {
 		return COMMAND_LINE;
 
 	} else {
+		if (*s == '-') { /* We will warn about this later */
+			s++;
+			while (isspace(*s))
+				s++;
+		}
+
+		/* TODO unspecified behaviour if include line with <backslash> */
+		/* TODO unspecified behaviour if continuation that looks like an include line */
 		return OTHER;
 	}
 }
@@ -178,11 +191,32 @@ main(int argc, char *argv[])
 			break;
 
 		case COMMAND_LINE:
+			/* TODO list may, for historical reasons, end at a comment line;
+			 *      note, the specifications specify “comment line” which is
+			 *      define to include empty and blank lines; note however
+			 *      that a line that begins with a <hash> that is prefixed
+			 *      by whitespace is not a comment line, so, if it begins
+			 *      with <tab> followed by zero or more whitespace, and then
+			 *      a <hash>, it a command line, not a comment line. */
+			/* TODO on line continuation, remove first '\t', if any, and join with '\\\n' */
 		case OTHER:
+			/* TODO first non-comment line shall be special target .POSIX without
+			 *      prerequisites or commands, behaviour is unspecified otherwise */
+			/* TODO on line continuation, remove leading white space and join with ' ' */
 			break;
 
 		default:
 			abort();
+		}
+
+		while (lines[i].continuation_joiner) {
+			if (memchr(lines[i].data, '#', lines[i].len)) {
+				warnf_confusing(WC_COMMENT_CONTINUATION,
+				                "%s:%zu: using continuation of line to continue "
+				                "a comment on the next line can cause confusion",
+				                lines[i].path, lines[i].lineno);
+			}
+			i += 1;
 		}
 	}
 
