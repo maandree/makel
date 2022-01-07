@@ -163,5 +163,5 @@ is_line_blank(struct line *line)
 	char *s = line->data;
 	while (isspace(*s))
 		s++;
-	return !!*s;
+	return !*s;
 }

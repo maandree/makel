@@ -49,13 +49,14 @@ check_line_continuations(struct line *lines, size_t nlines)
 		}
 
 		if (!lines[i].continuation_joiner &&
-		    i && lines[i - 1].continuation_joiner) {
+		    i && lines[i - 1].continuation_joiner &&
+		    is_line_blank(&lines[i])) {
 			warnf_confusing(WC_CONTINUATION_TO_BLANK,
 			                "%s:%zu: terminal line continuation to blank line, can cause confusion",
 			                lines[i].path, lines[i].lineno);
 		}
 
-		if (!lines[i].continuation_joiner && lines[i].eof) {
+		if (lines[i].continuation_joiner && lines[i].eof) {
 			warnf_unspecified(WC_EOF_LINE_CONTINUATION,
 			                  "%s:%zu: line continuation at end of file, causes unspecified behaviour%s",
 			                  lines[i].path, lines[i].lineno,
