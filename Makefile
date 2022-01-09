@@ -14,7 +14,7 @@ HDR =\
 	arg.h\
 	common.h
 
-all: makel
+all: makel check
 $(OBJ): $(HDR)
 
 .c.o:
@@ -22,6 +22,9 @@ $(OBJ): $(HDR)
 
 makel: $(OBJ)
 	$(CC) -o $@ $(OBJ) $(LDFLAGS)
+
+check: makel
+	./test
 
 install: makel
 	mkdir -p -- "$(DESTDIR)$(PREFIX)/bin"
@@ -40,4 +43,4 @@ clean:
 .SUFFIXES:
 .SUFFIXES: .o .c
 
-.PHONY: all install uninstall clean
+.PHONY: all check install uninstall clean

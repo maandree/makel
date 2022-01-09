@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Every test file must start with a line formatted as follows:
+#   #:<exit code>:<additional makel command line options>
+
+nfails=0
+for f in tests/*.mk; do
+    header=$(head -n1 "$f")
+    exp=$(echo "$header" | cut -d: -f2)
+    options=$(echo "$header" | cut -d: -f3)
+    ./makel -f$f $options 2>/dev/null 1>/dev/null
+    got=$?
+    if [ $got -lt $exp ]; then
+        echo "$f: defect was not detected (expected $exp, got $got)"
+        nfails=$((nfails+1))
+    fi
+    if [ $got -gt $exp ]; then
+        echo "$f: found more serious defects than expected (expected $exp, got $got)"
+        nfails=$((nfails+1))
+    fi
+done
+if [ $nfails -gt 0 ]; then
+    echo "----------"
+    echo "$nfails tests returned different exit codes than expected."
+fi
+
