@@ -6,6 +6,14 @@
 set -e
 exec >&2
 
+exit2str () {
+    if test $1 = 0; then
+        printf '%s\n' 'all good'
+    else
+        sed -n 's/^ *#define *EXIT_\([^ ]*\) *'"$1"' *$/ (\1)/p' < common.h | tr '[A-Z]' '[a-z]'
+    fi
+}
+
 nfails=0
 
 for f in tests/*.mk; do
@@ -18,11 +26,14 @@ for f in tests/*.mk; do
     got=$?
     set -e
 
+    expstr="$(exit2str $expected)"
+    gotstr="$(exit2str $got)"
+
     if test $got -lt $expected; then
-        printf '%s: %s\n' "$f" "defect was not detected (expected ${expected}, got ${got})"
+        printf '%s: %s\n' "$f" "defect was not detected (expected ${expected}${expstr}, got ${got}${gotstr})"
         : $(( nfails++ ))
     elif test $got -gt $expected; then
-        printf '%s: %s\n' "$f" "found more serious defects than expected (expected ${expected}, got ${got})"
+        printf '%s: %s\n' "$f" "found more serious defects than expected (expected ${expected}${expstr}, got ${got}${gotstr})"
         : $(( nfails++ ))
     fi
 done
