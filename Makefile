@@ -14,7 +14,7 @@ HDR =\
 	arg.h\
 	common.h
 
-all: makel check
+all: makel
 $(OBJ): $(HDR)
 
 .c.o:
