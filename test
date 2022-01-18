@@ -3,6 +3,7 @@
 # Every test file must start with a line formatted as follows:
 #   #:<exit code>:<additional makel command line options>
 
+set -e
 exec >&2
 
 nfails=0
@@ -12,8 +13,10 @@ for f in tests/*.mk; do
     expected=$(printf '%s' "$header" | cut -d : -f 2)
     options="$(printf '%s' "$header" | cut -d : -f 3-)"
 
+    set +e
     ./makel -f "$f" $options >/dev/null 2>/dev/null
     got=$?
+    set -e
 
     if test $got -lt $expected; then
         printf '%s: %s\n' "$f" "defect was not detected (expected ${expected}, got ${got})"
@@ -27,4 +30,5 @@ done
 if test $nfails -gt 0; then
     printf '%s\n' '----------'
     printf '%s\n' "${nfails} tests returned different exit codes than expected."
+    exit 1
 fi
