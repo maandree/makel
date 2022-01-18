@@ -3,24 +3,28 @@
 # Every test file must start with a line formatted as follows:
 #   #:<exit code>:<additional makel command line options>
 
+exec >&2
+
 nfails=0
+
 for f in tests/*.mk; do
-    header=$(head -n1 "$f")
-    exp=$(echo "$header" | cut -d: -f2)
-    options=$(echo "$header" | cut -d: -f3)
-    ./makel -f$f $options 2>/dev/null 1>/dev/null
+    header="$(head -n 1 < "$f")"
+    expected=$(printf '%s' "$header" | cut -d : -f 2)
+    options="$(printf '%s' "$header" | cut -d : -f 3-)"
+
+    ./makel -f "$f" $options >/dev/null 2>/dev/null
     got=$?
-    if [ $got -lt $exp ]; then
-        echo "$f: defect was not detected (expected $exp, got $got)"
-        nfails=$((nfails+1))
-    fi
-    if [ $got -gt $exp ]; then
-        echo "$f: found more serious defects than expected (expected $exp, got $got)"
-        nfails=$((nfails+1))
+
+    if test $got -lt $expected; then
+        printf '%s: %s\n' "$f" "defect was not detected (expected ${expected}, got ${got})"
+        : $(( nfails++ ))
+    elif test $got -gt $expected; then
+        printf '%s: %s\n' "$f" "found more serious defects than expected (expected ${expected}, got ${got})"
+        : $(( nfails++ ))
     fi
 done
-if [ $nfails -gt 0 ]; then
-    echo "----------"
-    echo "$nfails tests returned different exit codes than expected."
-fi
 
+if test $nfails -gt 0; then
+    printf '%s\n' '----------'
+    printf '%s\n' "${nfails} tests returned different exit codes than expected."
+fi
