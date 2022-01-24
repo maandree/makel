@@ -36,6 +36,20 @@ xprintwarningf(enum warning_class class, int severity, const char *fmt, ...)
 
 
 void
+printinfof(enum warning_class class, const char *fmt, ...)
+{
+	va_list ap;
+	if (warning_classes[class].action != IGNORE) {
+		va_start(ap, fmt);
+		fprintf(stderr, "[info] ");
+		vfprintf(stderr, fmt, ap);
+		fprintf(stderr, "\n");
+		va_end(ap);
+	}
+}
+
+
+void
 printerrorf(const char *fmt, ...)
 {
 	va_list ap;
@@ -56,6 +70,7 @@ printtipf(enum warning_class class, const char *fmt, ...)
 		va_start(ap, fmt);
 		fprintf(stderr, "[tip] ");
 		vfprintf(stderr, fmt, ap);
+		fprintf(stderr, "\n");
 		va_end(ap);
 	}
 }

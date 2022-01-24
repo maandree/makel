@@ -43,6 +43,7 @@ check_line_continuations(struct line *lines, size_t nlines)
 		if (lines[i].continuation_joiner &&
 		    (!i || !lines[i - 1].continuation_joiner) &&
 		    is_line_blank(&lines[i])) {
+			/* test cases: cont_of_blank.mk */
 			warnf_confusing(WC_CONTINUATION_OF_BLANK,
 			                "%s:%zu: initial line continuation on otherwise blank line, can cause confusion",
 			                lines[i].path, lines[i].lineno);
@@ -51,12 +52,14 @@ check_line_continuations(struct line *lines, size_t nlines)
 		if (!lines[i].continuation_joiner &&
 		    i && lines[i - 1].continuation_joiner &&
 		    is_line_blank(&lines[i])) {
+			/* test cases: cont_to_blank.mk */
 			warnf_confusing(WC_CONTINUATION_TO_BLANK,
 			                "%s:%zu: terminal line continuation to blank line, can cause confusion",
 			                lines[i].path, lines[i].lineno);
 		}
 
 		if (lines[i].continuation_joiner && lines[i].eof) {
+			/* test cases: eof_cont.mk (TODO with lines[i].nest_level) */
 			warnf_unspecified(WC_EOF_LINE_CONTINUATION,
 			                  "%s:%zu: line continuation at end of file, causes unspecified behaviour%s",
 			                  lines[i].path, lines[i].lineno,
@@ -69,6 +72,7 @@ check_line_continuations(struct line *lines, size_t nlines)
 		if (i && lines[i - 1].continuation_joiner && lines[i].len) {
 			if (!isspace(lines[i].data[0])) {
 				if (lines[cont_from].len && !isspace(lines[cont_from].data[lines[cont_from].len - 1])) {
+					/* test cases: cont_without_ws.mk (TODO with i != cont_from + 1) */
 					warnf_confusing(WC_SPACELESS_CONTINUATION,
 					                "%s:%zu,%zu: <backslash> is proceeded by a non-white space "
 					                "character at the same time as the next line%s begins with "
@@ -78,6 +82,7 @@ check_line_continuations(struct line *lines, size_t nlines)
 					                lines[i].lineno, i == cont_from + 1 ? "" :
 					                ", that consist of not only a <backslash>,");
 				}
+				/* test cases: unindented_cont.mk, cont_without_ws.mk */
 				warnf_confusing(WC_UNINDENTED_CONTINUATION,
 				                "%s:%zu: continuation of line is not indented, can cause confusion",
 				                lines[i].path, lines[i].lineno);
@@ -105,8 +110,9 @@ start_over:
 	while (isspace(*s)) {
 		if (!warned_bad_space && !isblank(*s)) {
 			warned_bad_space = 1;
+			/* test cases: bad_ws.mk, noninitial_bad_ws.mk */
 			warnf_undefined(WC_LEADING_BAD_SPACE,
-			                "%s:%zu: line contains leading white space other than"
+			                "%s:%zu: line contains leading white space other than "
 		        	        "<space> and <tab>, which causes undefined behaviour",
 			                line->path, line->lineno);
 			/* TODO what do we do here? */
@@ -117,6 +123,7 @@ start_over:
 	if (*s == '#') {
 		if (line->data[0] != '#') {
 			/* TODO should not apply if command line */
+			/* test cases: ws_before_comment.mk */
 			warnf_undefined(WC_ILLEGAL_INDENT,
 			                "%s:%zu: comment has leading white space, which is not legal",
 			                line->path, line->lineno);
@@ -187,7 +194,7 @@ main(int argc, char *argv[])
 
 		case BLANK:
 			if (style.only_empty_blank_lines) {
-				warnf_style(WC_NONEMPTY_BLANK, "%s:%zu: line is blank but not empty",
+				warnf_style(WC_NONEMPTY_BLANK, "%s:%zu: line is blank but not empty", /* TODO test cases */
 				            lines[i].path, lines[i].lineno);
 			}
 			break;
@@ -216,6 +223,7 @@ main(int argc, char *argv[])
 
 		while (lines[i].continuation_joiner) {
 			if (memchr(lines[i].data, '#', lines[i].len)) { /* TODO could also be a non-standard internal macro */
+				/* test cases: comment_cont.mk */
 				warnf_confusing(WC_COMMENT_CONTINUATION,
 				                "%s:%zu: using continuation of line to continue "
 				                "a comment on the next line can cause confusion",

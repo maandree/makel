@@ -125,13 +125,13 @@ int is_line_blank(struct line *line);
 /* ui.c */
 extern struct warning_class_data warning_classes[];
 void xprintwarningf(enum warning_class class, int severity, const char *fmt, ...);
-#define printinfof(CLASS, ...) xprintwarningf(CLASS, 0, __VA_ARGS__)
 #define warnf_style(CLASS, ...) xprintwarningf(CLASS, EXIT_STYLE, __VA_ARGS__)
 #define warnf_confusing(CLASS, ...) xprintwarningf(CLASS, EXIT_CONFUSING, __VA_ARGS__)
 #define warnf_warning(CLASS, ...) xprintwarningf(CLASS, EXIT_WARNING, __VA_ARGS__)
 #define warnf_unspecified(CLASS, ...) xprintwarningf(CLASS, EXIT_UNSPECIFIED, __VA_ARGS__)
 #define warnf_nonconforming(CLASS, ...) xprintwarningf(CLASS, EXIT_NONCONFORMING, __VA_ARGS__)
 #define warnf_undefined(CLASS, ...) xprintwarningf(CLASS, EXIT_UNDEFINED, __VA_ARGS__)
+void printinfof(enum warning_class class, const char *fmt, ...);
 void printerrorf(const char *fmt, ...);
 void printtipf(enum warning_class class, const char *fmt, ...);
 
