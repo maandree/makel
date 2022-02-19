@@ -1,6 +1,9 @@
 /* See LICENSE file for copyright and license details. */
 #include "common.h"
 
+#ifdef HAVE_GRAPHEME
+#include <grapheme.h>
+#endif
 
 static void
 print_long_line_tip(enum warning_class class)
@@ -104,6 +107,7 @@ load_text_file(int fd, const char *fname, int nest_level, size_t *nlinesp)
 void
 check_utf8_encoding(struct line *line)
 {
+#ifdef HAVE_GRAPHEME
 	size_t off, r;
 	uint_least32_t codepoint;
 #if GRAPHEME_INVALID_CODEPOINT == 0xFFFD
@@ -130,6 +134,7 @@ check_utf8_encoding(struct line *line)
 			line->len += r = ELEMSOF(invalid_codepoint_encoding);
 		}
 	}
+#endif
 }
 
 
@@ -138,15 +143,19 @@ check_column_count(struct line *line)
 {
 	size_t columns = 0;
 	size_t off, r;
-	uint_least32_t codepoint;
 
 	if (line->len <= style.max_line_length) /* Column count cannot be more than byte count */
 		return;
 
+#ifdef HAVE_GRAPHEME
 	for (off = 0; off < line->len; off += r) {
+		uint_least32_t codepoint;
 		r = grapheme_decode_utf8(&line->data[off], line->len - off, &codepoint);
 		columns += (size_t)abs(wcwidth((wchar_t)codepoint));
 	}
+#else
+	columns = line->len;
+#endif
 
 	if (columns > style.max_line_length) {
 		warnf_style(WC_LONG_LINE, "%s:%zu: line is longer than %zu columns",
