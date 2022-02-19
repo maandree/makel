@@ -141,21 +141,18 @@ check_utf8_encoding(struct line *line)
 void
 check_column_count(struct line *line)
 {
+#ifdef HAVE_GRAPHEME
 	size_t columns = 0;
 	size_t off, r;
+	uint_least32_t codepoint;
 
 	if (line->len <= style.max_line_length) /* Column count cannot be more than byte count */
 		return;
 
-#ifdef HAVE_GRAPHEME
 	for (off = 0; off < line->len; off += r) {
-		uint_least32_t codepoint;
 		r = grapheme_decode_utf8(&line->data[off], line->len - off, &codepoint);
 		columns += (size_t)abs(wcwidth((wchar_t)codepoint));
 	}
-#else
-	columns = line->len;
-#endif
 
 	if (columns > style.max_line_length) {
 		warnf_style(WC_LONG_LINE, "%s:%zu: line is longer than %zu columns",
@@ -163,6 +160,7 @@ check_column_count(struct line *line)
 		if (line->len + 1 <= 2048)
 			print_long_line_tip(WC_LONG_LINE);
 	}
+#endif
 }
 
 
