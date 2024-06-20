@@ -10,8 +10,6 @@
 #include <unistd.h>
 #include <wchar.h>
 
-#include <grapheme.h>
-
 #include "arg.h"
 
 

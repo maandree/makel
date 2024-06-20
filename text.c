@@ -1,6 +1,9 @@
 /* See LICENSE file for copyright and license details. */
 #include "common.h"
 
+#ifdef HAVE_GRAPHEME
+#include <grapheme.h>
+#endif
 
 static void
 print_long_line_tip(enum warning_class class)
@@ -104,6 +107,7 @@ load_text_file(int fd, const char *fname, int nest_level, size_t *nlinesp)
 void
 check_utf8_encoding(struct line *line)
 {
+#ifdef HAVE_GRAPHEME
 	size_t off, r;
 	uint_least32_t codepoint;
 #if GRAPHEME_INVALID_CODEPOINT == 0xFFFD
@@ -130,12 +134,14 @@ check_utf8_encoding(struct line *line)
 			line->len += r = ELEMSOF(invalid_codepoint_encoding);
 		}
 	}
+#endif
 }
 
 
 void
 check_column_count(struct line *line)
 {
+#ifdef HAVE_GRAPHEME
 	size_t columns = 0;
 	size_t off, r;
 	uint_least32_t codepoint;
@@ -154,6 +160,7 @@ check_column_count(struct line *line)
 		if (line->len + 1 <= 2048)
 			print_long_line_tip(WC_LONG_LINE);
 	}
+#endif
 }
 
 
